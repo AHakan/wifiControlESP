@@ -1,25 +1,19 @@
-#include "website.h"
 
-extern const char html[];
 
-#include <Adafruit_NeoPixel.h>
-#ifdef __AVR__
-#include <avr/power.h> // Required for 16 MHz Adafruit Trinket
-#endif
 
-#define PIN        4
-#define NUMPIXELS 16
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
-#define DELAYVAL 25
-
+//---------------------- Includes ----------------------//
+#include "NeoBlink.h"
 #include <ESP8266WiFi.h>
 
+
+//---------------------- Defines ----------------------//
 #ifndef STASSID
 #define STASSID "ASUS"
-#define STAPSK  "busenihicilgilendirmez."
+#define STAPSK  "*****"
 #endif
 
+
+//---------------------- Variables ----------------------//
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
@@ -94,23 +88,15 @@ IPAddress staticIP(192, 168, 1, 90); //ESP static ip
 IPAddress gateway(192, 168, 1, 1);   //IP Address of your WiFi Router (Gateway)
 IPAddress subnet(255, 255, 255, 0);  //Subnet mask
 
+
+//---------------------- Setup ----------------------//
 void setup() {
   Serial.begin(115200);
 
   // Connect to WiFi network
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.config(staticIP, subnet, gateway);
   WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected");
 
   // Set the certificates from PMEM (if using DRAM remove the _P from the call)
   server.setServerKeyAndCert_P(rsakey, sizeof(rsakey), x509, sizeof(x509));
@@ -122,25 +108,18 @@ void setup() {
   // Print the IP address
   Serial.println(WiFi.localIP());
 
-
-  // These lines are specifically to support the Adafruit Trinket 5V 16 MHz.
-  // Any other board, you can remove this part (but no harm leaving it):
-  #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
-    clock_prescale_set(clock_div_1);
-  #endif
-  // END of Trinket-specific code.
-
-  pixels.begin(); // INITIALIZE NeoPixel strip object (REQUIRED)
-  pixels.clear(); // Set all pixel colors to 'off'
+  //NeoBlink Setup
+  NeoBlink.SETUP();
 }
 
+
+//---------------------- Main ----------------------//
 void loop() {
   // Check if a client has connected
   WiFiClientSecure client = server.available();
   if (!client) {
     return;
   }
-
   // Wait until the client sends some data
   Serial.println("new client");
   unsigned long timeout = millis() + 3000;
@@ -153,7 +132,6 @@ void loop() {
     client.stop();
     return;
   }
-
   // Read the first line of the request
   String req = client.readStringUntil('\r');
   Serial.println(req);
@@ -162,139 +140,116 @@ void loop() {
   // Match the request
   int val;
   if (req.indexOf("/gpio/0") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-  } else if (req.indexOf("/gpio/1") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(0, 255, 0));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-  } else if (req.indexOf("/gpio/2") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(0, 0, 255));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-  } else if (req.indexOf("/gpio/3") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(255, 0, 0));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-  } else if (req.indexOf("/gpio/4") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(255, 255, 255));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-  } else if (req.indexOf("/gpio/5") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(255, 0, 255));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-
-  } else if (req.indexOf("/gpio/6") != -1) {
-    for(int i=0; i<NUMPIXELS; i++) { // For each pixel...
-
-    // pixels.Color() takes RGB values, from 0,0,0 up to 255,255,255
-    // Here we're using a moderately bright green color:
-    pixels.setPixelColor(i, pixels.Color(255, 193, 0));
-
-    pixels.show();   // Send the updated pixel colors to the hardware.
-
-    delay(DELAYVAL); // Pause before next pass through loop
-    }
-
-  } else {
-    
-    /*String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n";
+    NeoBlink.OFF();
+  } else if (req.indexOf("/color/99991a") != -1){
+    NeoBlink.GREEN();
+  } else if (req.indexOf("/color/99991b") != -1){
+    NeoBlink.BLUE();
+  } else if (req.indexOf("/color/99991c") != -1){
+    NeoBlink.RED();
+  } else if (req.indexOf("/color/99991d") != -1){
+    NeoBlink.WHITE();
+  } else if (req.indexOf("/color/99991e") != -1){
+    NeoBlink.YELLOW();
+  }  else if (req.indexOf("/color/99991f") != -1){
+    NeoBlink.ORANGE();
+  }  else if (req.indexOf("/color/99991g") != -1){
+    NeoBlink.PURPLE();
+  }  else if (req.indexOf("/color/99991h") != -1){
+    NeoBlink.PINK();
+  }  else if (req.indexOf("/color/99991i") != -1){
+    NeoBlink.LIGHTBLUE();
+  }  else if (req.indexOf("/color/99991k") != -1){
+    NeoBlink.LIGHTGREEN();
+  }  else if (req.indexOf("/color/99991m") != -1){
+    NeoBlink.LIGHTRED();
+  }   else {
+    String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n";
     s += "<html><head>";
     s += "<title>Home Automation</title>";
     s += "<style>";
-    s += ".button {background-color: #4CAF50; border: none;color: white;padding: 16px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;margin: 4px 2px;transition-duration: 0.4s;cursor: pointer;}";
-    s += ".button1:hover {background-color: white; color: black; border: 2px solid #4CAF50; }.button1 {background-color: #4CAF50;color: white;border: 2px solid #4CAF50;padding-left: 80px; padding-right: 80px;}";
-    s += ".button2:hover {background-color: white; color: black; border: 2px solid #008CBA;}.button2{background-color: #008CBA;color: white;border: 2px solid #008CBA; padding-left: 86px; padding-right: 86px; }";
-    s += ".button3:hover {background-color: white; color: black; border: 2px solid #f44336;}.button3 {background-color: #f44336;color: white;border: 2px solid #f44336;padding-left: 88px; padding-right: 87px;}";
-    s += ".button4:hover {background-color: white;color: black;border: 2px solid #e7e7e7;}.button4 {background-color: #e7e7e7; color: black; border: 2px solid #e7e7e7;padding-left: 81px; padding-right: 81px;}";
-    s += ".button5:hover {background-color: white;color: black;border: 2px solid #555555;}.button5 {background-color: #555555;color: white;border: 2px solid #555555;padding-left: 90px; padding-right: 90px;}";
-    s += ".button6:hover {background-color: white;color: black;border: 2px solid #cc66ff;}.button6 {background-color: #cc66ff; color: white; border: 2px solid #cc66ff;padding-left: 79px; padding-right: 79px;}";
-    s += ".button7:hover {background-color: white;color: black;border: 2px solid #ffc100;}.button7 {background-color: #ffc100; color: white; border: 2px solid #ffc100;padding-left: 79px; padding-right: 79px;}";
+    s += ".button {border: none;color: white;padding: 45px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;transition-duration: 0.4s;cursor: pointer;}";
+    s += ".button30:hover {background-color: white; border: 2px solid #555555;}.button30 {background-color: #555555; border: 2px solid #555555;}";  //OFF
+    s += ".button1:hover {background-color: white; border: 2px solid #00ff00;}.button1 {background-color: #00ff00; border: 2px solid #00ff00;}";    //GREEN
+    s += ".button2:hover {background-color: white; border: 2px solid #0000ff;}.button2 {background-color: #0000ff; border: 2px solid #0000ff;}";    //BLUE
+    s += ".button3:hover {background-color: white; border: 2px solid #ff0000;}.button3 {background-color: #ff0000; border: 2px solid #ff0000;}";    //RED
+    s += ".button4:hover {background-color: white; border: 2px solid #c0c0c0;}.button4 {background-color: #c0c0c0; border: 2px solid #c0c0c0;}";    //WHITE
+    s += ".button5:hover {background-color: white; border: 2px solid #ffff00;}.button5 {background-color: #ffff00; border: 2px solid #ffff00;}";    //YELLOW
+    s += ".button6:hover {background-color: white; border: 2px solid #ff8000;}.button6 {background-color: #ff8000; border: 2px solid #ff8000;}";    //ORANGE
+    s += ".button7:hover {background-color: white; border: 2px solid #7f00ff;}.button7 {background-color: #7f00ff; border: 2px solid #7f00ff;}";    //PURPLE
+    s += ".button8:hover {background-color: white; border: 2px solid #ff00ff;}.button8 {background-color: #ff00ff; border: 2px solid #ff00ff;}";    //PINK
+    s += ".button9:hover {background-color: white; border: 2px solid #0080ff;}.button9 {background-color: #0080ff; border: 2px solid #0080ff;}";    //LIGHTBLUE
+    s += ".button10:hover {background-color: white; border: 2px solid #00ff80;}.button10 {background-color: #00ff80; border: 2px solid #00ff80;}";    //LIGHTGREEN
+    s += ".button11:hover {background-color: white; border: 2px solid #ff4040;}.button11 {background-color: #ff4040; border: 2px solid #ff4040;}";    //LIGHTRED
     s += "</style>";
     s += "</head><body><center>";
-    s += "<p><a href=\"/gpio/1\"><button class=\"button button1\">Green</button></a></p>";
-    s += "<p><a href=\"/gpio/2\"><button class=\"button button2\">Blue</button></a></p>";
-    s += "<p><a href=\"/gpio/3\"><button class=\"button button3\">Red</button></a></p>";
-    s += "<p><a href=\"/gpio/4\"><button class=\"button button4\">White</button></a></p>";
-    s += "<p><a href=\"/gpio/5\"><button class=\"button button6\">Purple</button></a></p>";
-    s += "<p><a href=\"/gpio/6\"><button class=\"button button7\">Yellow</button></a></p>";
-    s += "<p><a href=\"/gpio/0\"><button class=\"button button5\">Off</button></a></p>";
-    s += "</center></body></html>\n"; */
-    client.print(html);
     
+    s += "<a href=\"/color/99991e\"><button class=\"button button5\"></button></a>";        //YELLOW
+    s += "<a href=\"/color/99991k\"><button class=\"button button10\"></button></a>";        //LIGHTGREEN
+    s += "<a href=\"/color/99991a\"><button class=\"button button1\"></button></a><br>";        //GREEN
+
+    s += "<a href=\"/color/99991g\"><button class=\"button button7\"></button></a>";        //PURPLE
+    s += "<a href=\"/color/99991i\"><button class=\"button button9\"></button></a>";        //LIGHTBLUE
+    s += "<a href=\"/color/99991b\"><button class=\"button button2\"></button></a><br>";        //BLUE
+
+    s += "<a href=\"/color/99991f\"><button class=\"button button6\"></button></a>";        //ORANGE
+    s += "<a href=\"/color/99991m\"><button class=\"button button11\"></button></a>";        //LIGHTRED
+    s += "<a href=\"/color/99991c\"><button class=\"button button3\"></button></a><br>";    //RED
+
+    s += "<a href=\"/color/99991h\"><button class=\"button button8\"></button></a>";        //PINK
+    s += "<a href=\"/color/99991d\"><button class=\"button button4\"></button></a>";        //WHITE
+    
+    
+    s += "<a href=\"/gpio/0\"><button class=\"button button30\"></button></a>";       //OFF
+    s += "</center></body></html>\n"; 
+    // Send the response to the client
+    client.print(s);
     return;
   }
 
   client.flush();
-  
-  /*String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n";
+
+  String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n";
   s += "<html><head>";
   s += "<title>Home Automation</title>";
   s += "<style>";
-  s += ".button {background-color: #4CAF50; border: none;color: white;padding: 16px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;margin: 4px 2px;transition-duration: 0.4s;cursor: pointer;}";
-  s += ".button1:hover {background-color: white; color: black; border: 2px solid #4CAF50; }.button1 {background-color: #4CAF50;color: white;border: 2px solid #4CAF50;padding-left: 80px; padding-right: 80px;}";
-  s += ".button2:hover {background-color: white; color: black; border: 2px solid #008CBA;}.button2{background-color: #008CBA;color: white;border: 2px solid #008CBA; padding-left: 86px; padding-right: 86px; }";
-  s += ".button3:hover {background-color: white; color: black; border: 2px solid #f44336;}.button3 {background-color: #f44336;color: white;border: 2px solid #f44336;padding-left: 88px; padding-right: 87px;}";
-  s += ".button4:hover {background-color: white;color: black;border: 2px solid #e7e7e7;}.button4 {background-color: #e7e7e7; color: black; border: 2px solid #e7e7e7;padding-left: 81px; padding-right: 81px;}";
-  s += ".button5:hover {background-color: white;color: black;border: 2px solid #555555;}.button5 {background-color: #555555;color: white;border: 2px solid #555555;padding-left: 90px; padding-right: 90px;}";
-  s += ".button6:hover {background-color: white;color: black;border: 2px solid #cc66ff;}.button6 {background-color: #cc66ff; color: white; border: 2px solid #cc66ff;padding-left: 79px; padding-right: 79px;}";
-  s += ".button7:hover {background-color: white;color: black;border: 2px solid #ffc100;}.button7 {background-color: #ffc100; color: white; border: 2px solid #ffc100;padding-left: 79px; padding-right: 79px;}";
+  s += ".button {border: none;color: white;padding: 45px;text-align: center;text-decoration: none;display: inline-block;font-size: 16px;transition-duration: 0.4s;cursor: pointer;}";
+  s += ".button30:hover {background-color: white; border: 2px solid #555555;}.button30 {background-color: #555555; border: 2px solid #555555;}";  //OFF
+  s += ".button1:hover {background-color: white; border: 2px solid #00ff00;}.button1 {background-color: #00ff00; border: 2px solid #00ff00;}";    //GREEN
+  s += ".button2:hover {background-color: white; border: 2px solid #0000ff;}.button2 {background-color: #0000ff; border: 2px solid #0000ff;}";    //BLUE
+  s += ".button3:hover {background-color: white; border: 2px solid #ff0000;}.button3 {background-color: #ff0000; border: 2px solid #ff0000;}";    //RED
+  s += ".button4:hover {background-color: white; border: 2px solid #c0c0c0;}.button4 {background-color: #c0c0c0; border: 2px solid #c0c0c0;}";    //WHITE
+  s += ".button5:hover {background-color: white; border: 2px solid #ffff00;}.button5 {background-color: #ffff00; border: 2px solid #ffff00;}";    //YELLOW
+  s += ".button6:hover {background-color: white; border: 2px solid #ff8000;}.button6 {background-color: #ff8000; border: 2px solid #ff8000;}";    //ORANGE
+  s += ".button7:hover {background-color: white; border: 2px solid #7f00ff;}.button7 {background-color: #7f00ff; border: 2px solid #7f00ff;}";    //PURPLE
+  s += ".button8:hover {background-color: white; border: 2px solid #ff00ff;}.button8 {background-color: #ff00ff; border: 2px solid #ff00ff;}";    //PINK
+  s += ".button9:hover {background-color: white; border: 2px solid #0080ff;}.button9 {background-color: #0080ff; border: 2px solid #0080ff;}";    //LIGHTBLUE
+  s += ".button10:hover {background-color: white; border: 2px solid #00ff80;}.button10 {background-color: #00ff80; border: 2px solid #00ff80;}";    //LIGHTGREEN
+  s += ".button11:hover {background-color: white; border: 2px solid #ff4040;}.button11 {background-color: #ff4040; border: 2px solid #ff4040;}";    //LIGHTRED
   s += "</style>";
   s += "</head><body><center>";
-  s += "<p><a href=\"/gpio/1\"><button class=\"button button1\">Green</button></a></p>";
-  s += "<p><a href=\"/gpio/2\"><button class=\"button button2\">Blue</button></a></p>";
-  s += "<p><a href=\"/gpio/3\"><button class=\"button button3\">Red</button></a></p>";
-  s += "<p><a href=\"/gpio/4\"><button class=\"button button4\">White</button></a></p>";
-  s += "<p><a href=\"/gpio/5\"><button class=\"button button6\">Purple</button></a></p>";
-  s += "<p><a href=\"/gpio/6\"><button class=\"button button7\">Yellow</button></a></p>";
-  s += "<p><a href=\"/gpio/0\"><button class=\"button button5\">Off</button></a></p>";
-  s += "</center></body></html>\n";*/
+  
+  s += "<a href=\"/color/99991e\"><button class=\"button button5\"></button></a>";        //YELLOW
+  s += "<a href=\"/color/99991k\"><button class=\"button button10\"></button></a>";        //LIGHTGREEN
+  s += "<a href=\"/color/99991a\"><button class=\"button button1\"></button></a><br>";        //GREEN
+
+  s += "<a href=\"/color/99991g\"><button class=\"button button7\"></button></a>";        //PURPLE
+  s += "<a href=\"/color/99991i\"><button class=\"button button9\"></button></a>";        //LIGHTBLUE
+  s += "<a href=\"/color/99991b\"><button class=\"button button2\"></button></a><br>";        //BLUE
+
+  s += "<a href=\"/color/99991f\"><button class=\"button button6\"></button></a>";        //ORANGE
+  s += "<a href=\"/color/99991m\"><button class=\"button button11\"></button></a>";        //LIGHTRED
+  s += "<a href=\"/color/99991c\"><button class=\"button button3\"></button></a><br>";    //RED
+
+  s += "<a href=\"/color/99991h\"><button class=\"button button8\"></button></a>";        //PINK
+  s += "<a href=\"/color/99991d\"><button class=\"button button4\"></button></a>";        //WHITE
+  
+  
+  s += "<a href=\"/gpio/0\"><button class=\"button button30\"></button></a>";       //OFF
+  s += "</center></body></html>\n"; 
   // Send the response to the client
-  client.print(html);
+  client.print(s);
+
   delay(1);
 
   // The client will actually be disconnected
